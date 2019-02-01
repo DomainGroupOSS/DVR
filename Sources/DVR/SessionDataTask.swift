@@ -11,7 +11,7 @@ final class SessionDataTask: URLSessionDataTask {
 
     weak var session: Session!
     let request: URLRequest
-    let injectedIdentifier: Int
+    private let injectedIdentifier: Int
     let completion: Completion?
     private let queue = DispatchQueue(label: "com.venmo.DVR.sessionDataTaskQueue", attributes: [])
     private var interaction: Interaction?
