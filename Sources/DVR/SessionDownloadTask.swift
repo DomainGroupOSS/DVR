@@ -33,7 +33,6 @@ final class SessionDownloadTask: URLSessionDownloadTask {
     }
 
     override func resume() {
-        // same ID?
         let task = SessionDataTask(session: session, request: request, taskIdentifier: session.nextTaskIdentifier()) { data, response, error in
             let location: URL?
             if let data = data {
