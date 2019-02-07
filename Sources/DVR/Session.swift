@@ -21,6 +21,9 @@ open class Session: URLSession {
     private var completedInteractions = [Interaction]()
     private var completionBlock: (() -> Void)?
 
+    private let identifierQueue = DispatchQueue(label: "dvr-task-identifier-queue")
+    private var currentTaskIdentifier = 0
+
     override open var delegate: URLSessionDelegate? {
         return backingSession.delegate
     }
@@ -150,14 +153,14 @@ open class Session: URLSession {
 
     private func addDataTask(_ request: URLRequest, completionHandler: ((Data?, Foundation.URLResponse?, NSError?) -> Void)? = nil) -> URLSessionDataTask {
         let modifiedRequest = backingSession.configuration.httpAdditionalHeaders.map(request.appending) ?? request
-        let task = SessionDataTask(session: self, request: modifiedRequest, completion: completionHandler)
+        let task = SessionDataTask(session: self, request: modifiedRequest, taskIdentifier: self.nextTaskIdentifier(), completion: completionHandler)
         addTask(task)
         return task
     }
 
     private func addDownloadTask(_ request: URLRequest, completionHandler: SessionDownloadTask.Completion? = nil) -> URLSessionDownloadTask {
         let modifiedRequest = backingSession.configuration.httpAdditionalHeaders.map(request.appending) ?? request
-        let task = SessionDownloadTask(session: self, request: modifiedRequest, completion: completionHandler)
+        let task = SessionDownloadTask(session: self, request: modifiedRequest, taskIdentifier: self.nextTaskIdentifier(), completion: completionHandler)
         addTask(task)
         return task
     }
@@ -165,7 +168,7 @@ open class Session: URLSession {
     private func addUploadTask(_ request: URLRequest, fromData data: Data?, completionHandler: SessionUploadTask.Completion? = nil) -> URLSessionUploadTask {
         var modifiedRequest = backingSession.configuration.httpAdditionalHeaders.map(request.appending) ?? request
         modifiedRequest = data.map(modifiedRequest.appending) ?? modifiedRequest
-        let task = SessionUploadTask(session: self, request: modifiedRequest, completion: completionHandler)
+        let task = SessionUploadTask(session: self, request: modifiedRequest, taskIdentifier: self.nextTaskIdentifier(), completion: completionHandler)
         addTask(task.dataTask)
         return task
     }
@@ -180,6 +183,14 @@ open class Session: URLSession {
 
         if shouldRecord {
             endRecording()
+        }
+    }
+
+    func nextTaskIdentifier() -> Int {
+        return self.identifierQueue.sync {
+            let identifier = self.currentTaskIdentifier
+            self.currentTaskIdentifier += 1
+            return identifier
         }
     }
 
