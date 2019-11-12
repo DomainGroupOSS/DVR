@@ -24,6 +24,18 @@ final class SessionDataTask: URLSessionDataTask {
         return injectedIdentifier
     }
 
+    override var currentRequest: URLRequest? {
+        return request
+    }
+
+    public override var priority: Float {
+        get {
+             return URLSessionTask.defaultPriority
+        }
+        set {
+        }
+    }
+
     // MARK: - Initializers
 
     init(session: Session, request: URLRequest, taskIdentifier: Int, completion: (Completion)? = nil) {

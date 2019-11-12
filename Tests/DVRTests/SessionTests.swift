@@ -27,11 +27,39 @@ class SessionTests: XCTestCase {
         } else {
             XCTFail()
         }
+
+        XCTAssertEqual(dataTask.currentRequest?.url?.absoluteString, request.url?.absoluteString)
     }
 
     func testDataTaskWithCompletion() {
         let request = URLRequest(url: URL(string: "http://example.com")!)
         let dataTask = session.dataTask(with: request, completionHandler: { _, _, _ in return }) 
+        
+        XCTAssert(dataTask is SessionDataTask)
+        
+        if let dataTask = dataTask as? SessionDataTask, let headers = dataTask.request.allHTTPHeaderFields {
+            XCTAssert(headers["testSessionHeader"] == "testSessionHeaderValue")
+        } else {
+            XCTFail()
+        }
+    }
+    
+    func testDataTaskWithUrl() {
+        let url = URL(string: "http://example.com")!
+        let dataTask = session.dataTask(with: url)
+        
+        XCTAssert(dataTask is SessionDataTask)
+        
+        if let dataTask = dataTask as? SessionDataTask, let headers = dataTask.request.allHTTPHeaderFields {
+            XCTAssert(headers["testSessionHeader"] == "testSessionHeaderValue")
+        } else {
+            XCTFail()
+        }
+    }
+
+    func testDataTaskWithUrlAndCompletion() {
+        let url = URL(string: "http://example.com")!
+        let dataTask = session.dataTask(with: url, completionHandler: { _, _, _ in return })
         
         XCTAssert(dataTask is SessionDataTask)
         
